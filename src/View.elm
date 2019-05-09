@@ -23,8 +23,8 @@ renderBox cell =
             [ SvgAttrs.width "30"
             , SvgAttrs.height "30"
             , SvgAttrs.fill (toString color)
-            , SvgAttrs.stroke (toString <| darken 20 color)
-            , SvgAttrs.strokeWidth "1"
+            , SvgAttrs.stroke (toString white)
+            , SvgAttrs.strokeWidth "2"
             , SvgAttrs.x (String.fromInt x)
             , SvgAttrs.y (String.fromInt y)
             ]
@@ -88,6 +88,51 @@ renderGameButton state =
             ]
             [ Html.text txt ]
 
+
+renderLabel : String -> Html Msg
+renderLabel str =
+    div
+        [ Html.Attributes.style "color" <| toString <| darken 20 uncovered
+        , Html.Attributes.style "font-weight" "300"
+        , Html.Attributes.style "line-height" "1"
+        , Html.Attributes.style "margin" "30px 0 0"
+        ]
+        [ Html.text str ]
+
+
+renderTitle : String -> Html Msg
+renderTitle str =
+    div
+        [ Html.Attributes.style "color" <| toString <| darken 20 flagged
+        , Html.Attributes.style "font-size" "40px"
+        , Html.Attributes.style "line-height" "60px"
+        , Html.Attributes.style "margin" "30px 0 0"
+        ]
+        [ Html.text str ]
+
+
+renderPanel : Model -> Html Msg
+renderPanel model =
+    div
+    [ Html.Attributes.style "bottom" "80px"
+    , Html.Attributes.style "color" <| toString uncovered
+    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
+    , Html.Attributes.style "font-size" "14pt"
+    , Html.Attributes.style "left" "300px"
+    , Html.Attributes.style "padding" "0 30px"
+    , Html.Attributes.style "position" "absolute"
+    , Html.Attributes.style "right" "0"
+    , Html.Attributes.style "top" "0"
+    ]
+    [ renderTitle "Elm Sweeper"
+    , renderLabel "Games"
+    , renderLabel <| String.fromInt model.games
+    , renderLabel "Wins"
+    , renderLabel <| String.fromInt model.wins
+    , renderGameButton model.status  
+    ]
+
+
 view : Model -> Html Msg
 view model = 
     div
@@ -100,5 +145,5 @@ view model =
         , onRightClick (\event -> Flag event.clientPos)
         ]
         [ renderGrid model.grid 
-        , renderGameButton model.status
+        , renderPanel model
         ]
