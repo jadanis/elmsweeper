@@ -1,7 +1,4 @@
-module Color exposing (Color, decode, encode, rgb, toRgb, toString)
-
-import Json.Decode as Decode
-import Json.Encode as Encode
+module Color exposing (..)
 
 
 type Color
@@ -10,16 +7,16 @@ type Color
 
 rgb : Int -> Int -> Int -> Color
 rgb red green blue =
-    Color { red = red, green = green, blue = blue }
+    Color { red = red, green = green , blue = blue }
 
 
-toRgb : Color -> { red : Int, green : Int, blue : Int }
+toRgb : Color -> {red : Int, green : Int, blue : Int }
 toRgb (Color rawRgb) =
     rawRgb
 
 
 toString : Color -> String
-toString (Color { red, green, blue }) =
+toString (Color {red, green, blue}) =
     "rgb("
         ++ String.fromInt red
         ++ ","
@@ -29,14 +26,20 @@ toString (Color { red, green, blue }) =
         ++ ")"
 
 
-decode : Decode.Decoder Color
-decode =
-    Decode.map3 rgb
-        (Decode.index 0 Decode.int)
-        (Decode.index 1 Decode.int)
-        (Decode.index 2 Decode.int)
+covered = rgb 193 193 193
+flagged = rgb 255 200 75
+uncovered = rgb 233 233 233
+exploded = rgb 255 65 30
+black = rgb 0 0 0
+white = rgb 255 255 255
 
+darken : Int -> Color -> Color
+darken st color =
+    let
+        r_color = toRgb color
+        red = r_color.red - st
+        green = r_color.green - st
+        blue = r_color.blue - st
+    in
+        rgb red green blue
 
-encode : Color -> Encode.Value
-encode (Color { red, green, blue }) =
-    Encode.list Encode.int [ red, green, blue ]
