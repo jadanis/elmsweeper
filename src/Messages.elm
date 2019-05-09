@@ -39,26 +39,48 @@ update msg model =
             
                         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid  
 
-                        lost = .mine <| Maybe.withDefault (blankCell covered) <| Dict.get (nx,ny) dict
+                        lost = (\c -> c.mine && not c.flag) <| Maybe.withDefault (blankCell covered) <| Dict.get (nx,ny) dict
 
-                        status = 
-                            case lost of 
-                                True ->
-                                    Lost 
-                                False ->
-                                    Playing
+                        safe c = xor c.mine c.rev
+
+                        won = List.foldl (&&) True <| List.map safe grid
+
+                        status = if lost then Lost else (if won then Won else Playing)
+
+                        games = if lost || won then model.games + 1 else model.games
+
+                        wins = if (won && not lost) then model.wins + 1 else model.wins
+
                     in
-                        { model | grid = grid, status = status }
+                        { model | grid = grid, status = status, games = games, wins = wins }
         
                 _ ->
                     model
 
-        _ ->
+        Lost ->
             case msg of 
                 NewGame ->
-                    newGame model.seed
+                    let
+                        (grid,seed)=
+                            newGame model.seed   
+                    in
+                        {model | grid = grid, seed = seed, status = Playing }
+                    
                 _ ->
-                    model    
+                    model
+
+        Won ->
+            case msg of 
+                NewGame ->
+                    let
+                        (grid,seed)=
+                            newGame model.seed   
+                    in
+                        {model | grid = grid, seed = seed, status = Playing}
+                    
+                _ ->
+                    model
+
 
 
 
@@ -95,8 +117,11 @@ reveal grid pos =
         lost =
             case (Dict.get pos dict) of
                 Nothing -> False
-                Just c -> c.mine
+                Just c -> (c.mine && not c.flag)
         
         loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered), rev = (if cell.mine then False else True)}) grid
+
+        new_grid = List.map (\cell -> if cell.pos == pos then r_cell else cell) grid
+
     in
-        if lost then loseGrid else (List.map (\cell -> if cell.pos == pos then r_cell else cell) grid)
+        if lost then loseGrid else new_grid
