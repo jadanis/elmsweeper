@@ -16,23 +16,27 @@ type alias Model =
     { status : State
     , grid : Grid Color
     , seed : Random.Seed
+    , games : Int
+    , wins : Int
     }
 
 
-newGame : Random.Seed -> Model
-newGame seed =
-    let
-        (grid, nseed) =
-            random seed 10 10
-    in
-        { status = Playing
-        , grid = grid
-        , seed = nseed 
-        }
+newGame : Random.Seed -> (Grid Color, Random.Seed)
+newGame seed = random seed 10 10
     
 
 init : Model
-init = newGame (Random.initialSeed 0)
+init = 
+    let
+        (grid, seed) =
+            newGame (Random.initialSeed 0)
+    in
+        { status = Playing
+        , grid = grid 
+        , seed = seed
+        , games = 0
+        , wins = 0
+        }
 
 random : Random.Seed -> Int -> Int -> (Grid Color, Random.Seed)
 random seed height width =
