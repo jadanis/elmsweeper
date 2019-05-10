@@ -4,6 +4,9 @@ import Random
 import Grid exposing (..)
 import Color exposing (..)
 import Dict
+import Time
+import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 type State
@@ -18,6 +21,8 @@ type alias Model =
     , seed : Random.Seed
     , games : Int
     , wins : Int
+    , start : Time.Posix
+    , curr : Time.Posix
     }
 
 
@@ -36,6 +41,8 @@ init =
         , seed = seed
         , games = 0
         , wins = 0
+        , start = Time.millisToPosix 0
+        , curr = Time.millisToPosix 0
         }
 
 random : Random.Seed -> Int -> Int -> (Grid Color, Random.Seed)
@@ -83,3 +90,79 @@ correct h w grid =
             {cell | neigh = (neighbors cell.pos)}
     in
         List.map ccell gridp
+
+
+decode : Decode.Decoder Model
+decode =
+    Decode.map6
+        (\status grid games wins start curr ->
+            { init
+                | status = status
+                , grid = grid  
+                --, seed = seed
+                , games = games
+                , wins = wins
+                , start = start
+                , curr = curr
+            }    
+        )
+        (Decode.field "status" (Decode.map decodeState Decode.string))
+        (Decode.field "grid" (Grid.decode Color.decode))
+        --(Decode.field "seed" (Decode.map decodeSeed (Decode.list Decode.int)))
+        (Decode.field "games" Decode.int)
+        (Decode.field "wins" Decode.int)
+        (Decode.field "start" (Decode.map decodeTime Decode.string))
+        (Decode.field "curr" (Decode.map decodeTime Decode.string))
+
+
+encode : Int -> Model -> String
+encode indent model =
+    Encode.encode
+        indent
+        (Encode.object
+            [ ("status", Encode.string <| encodeState model.status)
+            , ("grid", Grid.encode Color.encode model.grid)
+            --, ("seed", seedEncode model.seed) -- (String, Encode.Value)
+            , ("games", Encode.int model.games)
+            , ("wins", Encode.int model.wins)
+            , ("start", Encode.int <| Time.posixToMillis model.start)
+            , ("curr", Encode.int <| Time.posixToMillis model.curr)
+            ]
+        )
+
+
+decodeState : String -> State
+decodeState string =
+    case string of
+        "lost" ->
+            Lost
+        "won" ->
+            Won
+        _ ->
+            Playing
+
+
+
+encodeState : State -> String
+encodeState state =
+    case state of
+        Playing ->
+            "playing"
+        Won ->
+            "won"
+        Lost ->
+            "lost"
+
+
+decodeTime : String -> Time.Posix
+decodeTime string = Time.millisToPosix <| Maybe.withDefault 0 <| String.toInt string
+
+
+{-decodeSeed : List Int -> Random.Seed
+decodeSeed (x :: y :: xs) =
+    Random.Seed x y
+
+encodeSeed : Random.Seed -> Encode.Value
+encodeSeed (Random.Seed n0 n1) =
+    Encode.list Encode.int [n0,n1]-}
+
