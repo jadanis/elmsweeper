@@ -1,5 +1,7 @@
 module Color exposing (..)
 
+import Json.Decode as Decode 
+import Json.Encode as Encode 
 
 type Color
     = Color { red : Int, green : Int, blue : Int }
@@ -27,11 +29,27 @@ toString (Color {red, green, blue}) =
 
 
 covered = rgb 193 193 193
-flagged = rgb 255 200 75
-uncovered = rgb 233 233 233
+flagged = rgb 220 130 255
+uncovered : Int -> Color
+uncovered n = elevate n safe_green
 exploded = rgb 255 65 30
 black = rgb 0 0 0
 white = rgb 255 255 255
+safe_green = rgb 151 245 90
+
+elevate : Int -> Color -> Color
+elevate n color =
+    let
+        r_color = toRgb color
+        red = r_color.red
+        green = r_color.green
+        blue = r_color.blue
+        nred = if red < 255 then red + 26 else red
+        ngreen = if red < 255 then green else green - 30
+        nblue = if red < 255 then blue else blue - 8
+        ncolor = rgb nred ngreen nblue
+    in
+        if n == 0 then ncolor else (elevate (n-1) ncolor)
 
 darken : Int -> Color -> Color
 darken st color =
@@ -43,3 +61,15 @@ darken st color =
     in
         rgb red green blue
 
+
+decode : Decode.Decoder Color
+decode =
+    Decode.map3 rgb
+        (Decode.index 0 Decode.int)
+        (Decode.index 1 Decode.int)
+        (Decode.index 2 Decode.int)
+
+
+encode : Color -> Encode.Value
+encode (Color { red, green, blue }) =
+    Encode.list Encode.int [ red, green, blue ]
