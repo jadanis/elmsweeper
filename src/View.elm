@@ -68,9 +68,14 @@ renderGameButton state =
         (txt, msg) =
             case state of 
                 Playing ->
-                    ("Pause", Noop)
+                    ("Pause", Pause)
+                
                 Lost ->
                     ("New Game",NewGame)
+                
+                Paused ->
+                    ("Continue", Continue)
+                
                 Won ->
                     ("New Game",NewGame)
     in
