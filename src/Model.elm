@@ -13,6 +13,7 @@ type State
     = Playing
     | Lost
     | Won
+    | Paused
 
 
 type alias Model =
@@ -150,6 +151,10 @@ encodeState state =
             "playing"
         Won ->
             "won"
+        
+        Paused ->
+            "paused"
+        
         Lost ->
             "lost"
 
@@ -165,4 +170,3 @@ decodeSeed (x :: y :: xs) =
 encodeSeed : Random.Seed -> Encode.Value
 encodeSeed (Random.Seed n0 n1) =
     Encode.list Encode.int [n0,n1]-}
-
