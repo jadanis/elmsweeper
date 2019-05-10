@@ -1,9 +1,16 @@
-module Messages exposing (..)
+port module Messages exposing (..)
 
 import Model exposing (..)
 import Dict
 import Color exposing (..)
 import Grid exposing (..)
+import Time
+
+port save : String -> Cmd msg
+
+saveToStorage : Model -> (Model, Cmd Msg)
+saveToStorage model =
+    (model, save (Model.encode 2 model))
 
 -- Update
 
@@ -11,10 +18,11 @@ type Msg
     = Flag (Float,Float)
     | Reveal (Float,Float)
     | NewGame
+    | Tick Time.Posix
     | Noop
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case model.status of 
         Playing ->
@@ -27,7 +35,7 @@ update msg model =
                 
                         grid = flag model.grid (nx, ny)
                     in
-                        {model | grid = grid }
+                        ({model | grid = grid }, Cmd.none)
         
                 Reveal (x,y) ->
                     let
@@ -52,10 +60,14 @@ update msg model =
                         wins = if (won && not lost) then model.wins + 1 else model.wins
 
                     in
-                        { model | grid = grid, status = status, games = games, wins = wins }
+                        ({ model | grid = grid, status = status, games = games, wins = wins }, Cmd.none)
         
+                Tick newTime ->
+                    ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000 }, Cmd.none)
+                    --    |> saveToStorage
+                
                 _ ->
-                    model
+                    (model, Cmd.none)
 
         Lost ->
             case msg of 
@@ -64,10 +76,10 @@ update msg model =
                         (grid,seed)=
                             newGame model.seed   
                     in
-                        {model | grid = grid, seed = seed, status = Playing }
+                        ({model | grid = grid, seed = seed, status = Playing , start = Time.millisToPosix 0, curr = Time.millisToPosix 0}, Cmd.none)
                     
                 _ ->
-                    model
+                    (model, Cmd.none)
 
         Won ->
             case msg of 
@@ -76,10 +88,10 @@ update msg model =
                         (grid,seed)=
                             newGame model.seed   
                     in
-                        {model | grid = grid, seed = seed, status = Playing}
+                        ({model | grid = grid, seed = seed, status = Playing, start = Time.millisToPosix 0, curr = Time.millisToPosix 0}, Cmd.none)
                     
                 _ ->
-                    model
+                    (model, Cmd.none)
 
 
 
@@ -112,14 +124,14 @@ reveal grid pos =
                     if c.flag || c.rev then
                         c 
                     else
-                        { c | rev = True, val = uncovered }
+                        { c | rev = True, val = (uncovered c.neigh) }
         
         lost =
             case (Dict.get pos dict) of
                 Nothing -> False
                 Just c -> (c.mine && not c.flag)
         
-        loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered), rev = (if cell.mine then False else True)}) grid
+        loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered cell.neigh), rev = (if cell.mine then False else True)}) grid
 
         new_grid = List.map (\cell -> if cell.pos == pos then r_cell else cell) grid
 
