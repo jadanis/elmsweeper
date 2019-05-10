@@ -9,6 +9,7 @@ import Html.Events.Extra.Mouse as Mouse exposing (onClick, EventOptions, onWithO
 import Html.Attributes exposing (style)
 import Svg exposing (..)
 import Svg.Attributes as SvgAttrs
+import Time
 
 renderBox : Cell Color -> Svg Msg
 renderBox cell =
@@ -75,7 +76,7 @@ renderGameButton state =
     in
         button
             [ Mouse.onClick (\event -> msg)
-            , Html.Attributes.style "background" <| toString uncovered
+            , Html.Attributes.style "background" <| toString covered
             , Html.Attributes.style "color" <| toString black
             , Html.Attributes.style "display" "block"
             , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
@@ -92,7 +93,7 @@ renderGameButton state =
 renderLabel : String -> Html Msg
 renderLabel str =
     div
-        [ Html.Attributes.style "color" <| toString <| darken 20 uncovered
+        [ Html.Attributes.style "color" <| toString <| covered
         , Html.Attributes.style "font-weight" "300"
         , Html.Attributes.style "line-height" "1"
         , Html.Attributes.style "margin" "30px 0 0"
@@ -111,11 +112,21 @@ renderTitle str =
         [ Html.text str ]
 
 
+renderTime : Time.Posix -> Time.Posix -> Html Msg
+renderTime start curr =
+    let
+        ellapse = Time.millisToPosix <| (Time.posixToMillis curr) - (Time.posixToMillis start)
+        minute = Time.toMinute Time.utc ellapse
+        second = Time.toSecond Time.utc ellapse
+        txt = (String.fromInt minute) ++ ":" ++ (if second < 10 then "0" else "") ++ (String.fromInt second)
+    in
+        renderLabel txt
+
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
     [ Html.Attributes.style "bottom" "80px"
-    , Html.Attributes.style "color" <| toString uncovered
+    , Html.Attributes.style "color" <| toString covered
     , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
     , Html.Attributes.style "font-size" "14pt"
     , Html.Attributes.style "left" "300px"
@@ -129,6 +140,8 @@ renderPanel model =
     , renderLabel <| String.fromInt model.games
     , renderLabel "Wins"
     , renderLabel <| String.fromInt model.wins
+    , renderLabel "Time"
+    , renderTime model.start model.curr
     , renderGameButton model.status  
     ]
 
