@@ -20,6 +20,8 @@ type Msg
     | NewGame
     | Tick Time.Posix
     | Noop
+    | Pause
+    | Continue
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -66,6 +68,9 @@ update msg model =
                     ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000 }, Cmd.none)
                     --    |> saveToStorage
                 
+                Pause ->
+                    ({model | status = Paused}, Cmd.none)
+                
                 _ ->
                     (model, Cmd.none)
 
@@ -90,6 +95,13 @@ update msg model =
                     in
                         ({model | grid = grid, seed = seed, status = Playing, start = Time.millisToPosix 0, curr = Time.millisToPosix 0}, Cmd.none)
                     
+                _ ->
+                    (model, Cmd.none)
+        
+        Paused ->
+            case msg of 
+                Continue ->
+                    ({model | status = Playing}, Cmd.none)
                 _ ->
                     (model, Cmd.none)
 
