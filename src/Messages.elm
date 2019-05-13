@@ -128,24 +128,42 @@ reveal grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
+        getNeigh d key =
+            case (Dict.get key d) of
+                Nothing ->
+                    0
+                Just c ->
+                    if c.mine then
+                        1
+                    else
+                        0
+
+        cellsn (a,b) =
+            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+        
+        neighbors (x,y) =
+            List.sum (List.map (getNeigh dict) (cellsn (x,y)))
+        
         r_cell =
-            case (Dict.get pos dict) of 
+            case (Dict.get pos dict) of
                 Nothing ->
                     blankCell covered
                 Just c ->
-                    if c.flag || c.rev then
-                        c 
-                    else
-                        { c | rev = True, val = (uncovered c.neigh) }
+                    c
         
-        lost =
-            case (Dict.get pos dict) of
-                Nothing -> False
-                Just c -> (c.mine && not c.flag)
+        neigh = neighbors r_cell.pos
+
+        n_cell =
+            if r_cell.flag || r_cell.rev then
+                r_cell 
+            else
+                { r_cell | rev = True, val = (uncovered neigh), neigh = neigh}
+        
+        lost = (r_cell.mine && not r_cell.flag)
         
         loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered cell.neigh), rev = (if cell.mine then False else True)}) grid
 
-        new_grid = List.map (\cell -> if cell.pos == pos then r_cell else cell) grid
+        new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
 
     in
         if lost then loseGrid else new_grid
