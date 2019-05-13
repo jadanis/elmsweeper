@@ -11,6 +11,60 @@ import Svg exposing (..)
 import Svg.Attributes as SvgAttrs
 import Time
 
+
+view : Model -> Html Msg
+view model = 
+    div
+        [ Html.Attributes.style "width" "600px"
+        , Html.Attributes.style "height" "600px"
+        , Html.Attributes.style "position" "absolute"
+        , Html.Attributes.style "left" "0"
+        , Html.Attributes.style "top" "0"
+        , Mouse.onClick (\event -> Reveal event.clientPos)
+        , onRightClick (\event -> Flag event.clientPos)
+        ]
+        [ renderGrid model.grid 
+        , renderPanel model
+        ]
+
+
+renderGrid : Grid Color -> Html Msg
+renderGrid grid =
+    List.map renderBox grid
+        |>  Svg.svg
+            [ SvgAttrs.width "300"
+            , SvgAttrs.height "300"
+            ]
+
+
+renderPanel : Model -> Html Msg
+renderPanel model =
+    div
+    [ Html.Attributes.style "bottom" "80px"
+    , Html.Attributes.style "color" <| toString covered
+    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
+    , Html.Attributes.style "font-size" "14pt"
+    , Html.Attributes.style "left" "300px"
+    , Html.Attributes.style "padding" "0 30px"
+    , Html.Attributes.style "position" "absolute"
+    , Html.Attributes.style "right" "0"
+    , Html.Attributes.style "top" "0"
+    ]
+    [ renderTitle "Elm Sweeper"
+    , renderLabel "Games"
+    , renderLabel <| String.fromInt model.games
+    , renderLabel "Wins"
+    , renderLabel <| String.fromInt model.wins
+    , renderLabel "Time"
+    , renderTime model.start model.curr
+    , renderGameButton model.status  
+    ]
+
+
+onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
+onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
+
+
 renderBox : Cell Color -> Svg Msg
 renderBox cell =
     let
@@ -48,19 +102,7 @@ renderBox cell =
                 [box , text]
             else
                 [ box ]
-
-
-renderGrid : Grid Color -> Html Msg
-renderGrid grid =
-    List.map renderBox grid
-        |>  Svg.svg
-            [ SvgAttrs.width "300"
-            , SvgAttrs.height "300"
-            ]
-
-
-onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
-onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
+                
 
 renderGameButton : State -> Html Msg
 renderGameButton state =
@@ -126,42 +168,3 @@ renderTime start curr =
         txt = (String.fromInt minute) ++ ":" ++ (if second < 10 then "0" else "") ++ (String.fromInt second)
     in
         renderLabel txt
-
-renderPanel : Model -> Html Msg
-renderPanel model =
-    div
-    [ Html.Attributes.style "bottom" "80px"
-    , Html.Attributes.style "color" <| toString covered
-    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-    , Html.Attributes.style "font-size" "14pt"
-    , Html.Attributes.style "left" "300px"
-    , Html.Attributes.style "padding" "0 30px"
-    , Html.Attributes.style "position" "absolute"
-    , Html.Attributes.style "right" "0"
-    , Html.Attributes.style "top" "0"
-    ]
-    [ renderTitle "Elm Sweeper"
-    , renderLabel "Games"
-    , renderLabel <| String.fromInt model.games
-    , renderLabel "Wins"
-    , renderLabel <| String.fromInt model.wins
-    , renderLabel "Time"
-    , renderTime model.start model.curr
-    , renderGameButton model.status  
-    ]
-
-
-view : Model -> Html Msg
-view model = 
-    div
-        [ Html.Attributes.style "width" "600px"
-        , Html.Attributes.style "height" "600px"
-        , Html.Attributes.style "position" "absolute"
-        , Html.Attributes.style "left" "0"
-        , Html.Attributes.style "top" "0"
-        , Mouse.onClick (\event -> Reveal event.clientPos)
-        , onRightClick (\event -> Flag event.clientPos)
-        ]
-        [ renderGrid model.grid 
-        , renderPanel model
-        ]
