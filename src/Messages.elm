@@ -161,7 +161,7 @@ reveal grid pos =
         
         lost = (r_cell.mine && not r_cell.flag)
         
-        loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered cell.neigh), rev = (if cell.mine then False else True)}) grid
+        loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered <| neighbors cell.pos), rev = (if cell.mine then False else True), neigh = neighbors cell.pos}) grid
 
         new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
 
