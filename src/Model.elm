@@ -61,7 +61,7 @@ random seed height width =
 
         mines = 
             List.map (\(x,y) -> (x*30,y*30)) m
-    
+
         cell n = blankCell covered
 
         field nums = correct height width (List.map cell nums)
@@ -84,7 +84,7 @@ setStep n seed gen =
 
 randomCoor : Int -> Int -> Random.Generator (Int, Int)
 randomCoor h w =
-    Random.pair (Random.int 0 h) (Random.int 0 w)
+    Random.pair (Random.int 0 <| h - 1) (Random.int 0 <| w - 1)
 
 
 correct : Int -> Int -> Grid a -> Grid a
