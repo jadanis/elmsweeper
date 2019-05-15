@@ -14,6 +14,7 @@ type State
     | Lost
     | Won
     | Paused
+    | New
 
 
 type alias Model =
@@ -33,7 +34,7 @@ init f =
             newGame (Random.initialSeed <| modBy 100 f)
 
         model = 
-            { status = Playing
+            { status = New
             , grid = grid 
             , seed = seed
             , games = 0
@@ -146,8 +147,12 @@ decodeState string =
             Lost
         "won" ->
             Won
-        _ ->
+        "playing" ->
             Playing
+        "paused" ->
+            Paused
+        _ ->
+            New
 
 
 
@@ -164,6 +169,9 @@ encodeState state =
         
         Lost ->
             "lost"
+
+        New ->
+            "new"
 
 
 decodeTime : String -> Time.Posix
