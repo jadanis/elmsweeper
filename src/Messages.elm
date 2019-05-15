@@ -26,90 +26,72 @@ type Msg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    case model.status of 
-        Playing ->
-            case msg of
-                Flag (x,y) ->
-                    let
-                        nx = 30 * (round x // 30)
-               
-                        ny = 30 * (round y // 30)
-                
-                        grid = flag model.grid (nx, ny)
-                    in
-                        ({model | grid = grid }, Cmd.none)
+    case msg of
+        Flag (x,y) ->
+            if model.status == Playing || model.status == New then
+                (flag (x,y) model, Cmd.none)
+            else
+                (model,Cmd.none)
         
-                Reveal (x,y) ->
-                    let
-                        nx = 30 * (round x // 30)
-
-                        ny = 30 * (round y // 30)
-
-                        grid = reveal model.grid (nx,ny)
-            
-                        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid  
-
-                        lost = (\c -> c.mine && not c.flag) <| Maybe.withDefault (blankCell covered) <| Dict.get (nx,ny) dict
-
-                        safe c = xor c.mine c.rev
-
-                        won = List.foldl (&&) True <| List.map safe grid
-
-                        status = if lost then Lost else (if won then Won else Playing)
-
-                        games = if lost || won then model.games + 1 else model.games
-
-                        wins = if (won && not lost) then model.wins + 1 else model.wins
-
-                    in
-                        ({ model | grid = grid, status = status, games = games, wins = wins }, Cmd.none)
+        Reveal (x,y) ->
+            if model.status == Playing || model.status == New then
+                (reveal (x,y) model, Cmd.none)
+            else
+                (model,Cmd.none)
         
-                Tick newTime ->
-                    ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000 }, Cmd.none)
-                    --    |> saveToStorage
-                
-                Pause ->
+        NewGame ->
+            if model.status == Lost || model.status == Won then
+                (newModel model, Cmd.none)
+            else
+                (model,Cmd.none)
+        
+        Tick newTime ->
+            case model.status of
+                Playing ->
+                    ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000}, Cmd.none)
+                _ ->
+                    (model,Cmd.none)
+
+        Pause ->
+            case model.status of
+                Playing ->
                     ({model | status = Paused}, Cmd.none)
-                
                 _ ->
-                    (model, Cmd.none)
-
-        Lost ->
-            case msg of 
-                NewGame ->
-                    let
-                        (grid,seed)=
-                            newGame model.seed   
-                    in
-                        ({model | grid = grid, seed = seed, status = Playing , start = Time.millisToPosix 0, curr = Time.millisToPosix 0}, Cmd.none)
-                    
-                _ ->
-                    (model, Cmd.none)
-
-        Won ->
-            case msg of 
-                NewGame ->
-                    let
-                        (grid,seed)=
-                            newGame model.seed   
-                    in
-                        ({model | grid = grid, seed = seed, status = Playing, start = Time.millisToPosix 0, curr = Time.millisToPosix 0}, Cmd.none)
-                    
-                _ ->
-                    (model, Cmd.none)
+                    (model,Cmd.none)
         
-        Paused ->
-            case msg of 
-                Continue ->
+        Continue ->
+            case model.status of
+                Paused ->
                     ({model | status = Playing}, Cmd.none)
                 _ ->
                     (model, Cmd.none)
+        
+        _ ->
+            (model, Cmd.none)
 
 
+newModel model =
+    let
+        (grid,seed)=
+            newGame model.seed
+    in
+        {model | grid = grid, seed = seed, status = New, start = Time.millisToPosix 0, curr = Time.millisToPosix 0}
 
 
-flag : Grid Color -> (Int,Int) -> Grid Color
-flag grid pos =
+flag : (Float,Float) -> Model -> Model 
+flag (x,y) model =
+    let
+        nx = 30 * (round x // 30)
+               
+        ny = 30 * (round y // 30)
+                
+        grid = flag_cell model.grid (nx, ny)
+    in
+        { model | grid = grid, status = Playing }
+
+
+flag_cell : Grid Color -> (Int,Int) -> Grid Color
+flag_cell grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
@@ -123,8 +105,35 @@ flag grid pos =
         List.map (\cell -> if cell.pos == pos then f_cell else cell) grid
 
 
-reveal : Grid Color -> (Int, Int) -> Grid Color
-reveal grid pos =
+reveal : (Float,Float) -> Model -> Model
+reveal (x,y) model =
+    let
+        nx = 30 * (round x // 30)
+
+        ny = 30 * (round y // 30)
+
+        grid = reveal_cell model.grid (nx,ny)
+            
+        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid  
+
+        lost = (\c -> c.mine && not c.flag) <| Maybe.withDefault (blankCell covered) <| Dict.get (nx,ny) dict
+
+        safe c = xor c.mine c.rev
+
+        won = List.foldl (&&) True <| List.map safe grid
+
+        status = if lost then Lost else (if won then Won else Playing)
+
+        games = if lost || won then model.games + 1 else model.games
+
+        wins = if (won && not lost) then model.wins + 1 else model.wins
+
+    in
+        { model | grid = grid, status = status, games = games, wins = wins }
+
+
+reveal_cell : Grid Color -> (Int, Int) -> Grid Color
+reveal_cell grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
