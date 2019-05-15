@@ -20,8 +20,6 @@ view model =
         , Html.Attributes.style "position" "absolute"
         , Html.Attributes.style "left" "0"
         , Html.Attributes.style "top" "0"
-        , Mouse.onClick (\event -> Reveal event.clientPos)
-        , onRightClick (\event -> Flag event.clientPos)
         ]
         [ renderGrid model.grid 
         , renderPanel model
@@ -34,6 +32,8 @@ renderGrid grid =
         |>  Svg.svg
             [ SvgAttrs.width "300"
             , SvgAttrs.height "300"
+            , Mouse.onClick (\event -> Reveal event.clientPos)
+            , onRightClick (\event -> Flag event.clientPos)
             ]
 
 
@@ -120,6 +120,9 @@ renderGameButton state =
                 
                 Won ->
                     ("New Game",NewGame)
+                
+                New ->
+                    ("Pause",Pause)
     in
         button
             [ Mouse.onClick (\event -> msg)
