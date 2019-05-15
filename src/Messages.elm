@@ -1,4 +1,4 @@
-port module Messages exposing (..)
+port module Messages exposing (Msg(..),update,saveToStorage)
 
 import Model exposing (..)
 import Dict
