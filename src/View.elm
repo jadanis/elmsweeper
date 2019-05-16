@@ -30,7 +30,8 @@ renderGrid : Grid Color -> Html Msg
 renderGrid grid =
     List.map renderBox grid
         |>  Svg.svg
-            [ SvgAttrs.width "300"
+            [ Html.Attributes.style "margin" "5px"
+            , SvgAttrs.width "300"
             , SvgAttrs.height "300"
             , Mouse.onClick (\event -> Reveal event.clientPos)
             , onRightClick (\event -> Flag event.clientPos)
@@ -135,7 +136,7 @@ renderGameButton state =
             , Html.Attributes.style "width" "100px"
             , Html.Attributes.style "border" "0"
             , Html.Attributes.style "cursor" "pointer"
-
+            , Html.Attributes.style "margin" "5px 0px"
             ]
             [ Html.text txt ]
 
@@ -154,7 +155,7 @@ renderLabel str =
 renderTitle : String -> Html Msg
 renderTitle str =
     div
-        [ Html.Attributes.style "color" <| toString <| darken 20 flagged
+        [ Html.Attributes.style "color" <| toString <| exploded
         , Html.Attributes.style "font-size" "40px"
         , Html.Attributes.style "line-height" "60px"
         , Html.Attributes.style "margin" "30px 0 0"
