@@ -1,6 +1,6 @@
-port module Messages exposing (Msg(..),update,saveToStorage)
+port module Messages exposing (Msg(..),update,saveToStorage,save)
 
-import Model exposing (..)
+import Model exposing (Model,State(..),newGame)
 import Dict
 import Color exposing (..)
 import Grid exposing (..)
@@ -48,9 +48,9 @@ update msg model =
         Tick newTime ->
             case model.status of
                 Playing ->
-                    ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000}, Cmd.none)
+                    saveToStorage <| {model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000}
                 _ ->
-                    (model,Cmd.none)
+                    saveToStorage <| model
 
         Pause ->
             case model.status of
@@ -81,9 +81,9 @@ newModel model =
 flag : (Float,Float) -> Model -> Model 
 flag (x,y) model =
     let
-        nx = 30 * (round x // 30)
+        nx = 30 * ((round x - 5 ) // 30)
                
-        ny = 30 * (round y // 30)
+        ny = 30 * ((round y - 5 ) // 30)
                 
         grid = flag_cell model.grid (nx, ny)
     in
@@ -108,9 +108,9 @@ flag_cell grid pos =
 reveal : (Float,Float) -> Model -> Model
 reveal (x,y) model =
     let
-        nx = 30 * (round x // 30)
+        nx = 30 * ((round x - 5 ) // 30)
 
-        ny = 30 * (round y // 30)
+        ny = 30 * ((round y - 5) // 30)
 
         grid = reveal_cell model.grid (nx,ny)
             
