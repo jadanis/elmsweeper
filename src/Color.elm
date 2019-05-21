@@ -28,14 +28,15 @@ toString (Color {red, green, blue}) =
         ++ ")"
 
 
-covered = rgb 193 193 193
-flagged = rgb 220 130 255
+covered = rgb 185 216 194
+flagged = rgb 219 213 110
 uncovered : Int -> Color
 uncovered n = elevate n safe_green
-exploded = rgb 255 65 30
+--uncovered = rgb 103 220 213
+exploded = rgb 252 119 83
 black = rgb 0 0 0
 white = rgb 255 255 255
-safe_green = rgb 151 245 90
+safe_green = rgb 102 213 209
 
 elevate : Int -> Color -> Color
 elevate n color =
@@ -44,9 +45,9 @@ elevate n color =
         red = r_color.red
         green = r_color.green
         blue = r_color.blue
-        nred = if red < 255 then red + 26 else red
-        ngreen = if red < 255 then green else green - 30
-        nblue = if red < 255 then blue else blue - 8
+        nred = red - 5
+        ngreen = green - 19
+        nblue = blue - 15
         ncolor = rgb nred ngreen nblue
     in
         if n == 0 then ncolor else (elevate (n-1) ncolor)

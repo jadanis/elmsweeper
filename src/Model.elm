@@ -27,11 +27,11 @@ type alias Model =
     , curr : Time.Posix
     }
 
-init : Int -> (Model, Cmd msg)
-init f = 
+init : Model
+init = 
     let
         (grid, seed) =
-            newGame (Random.initialSeed <| modBy 100 f)
+            newGame (Random.initialSeed 0)
 
         model = 
             { status = New
@@ -39,11 +39,11 @@ init f =
             , seed = seed
             , games = 0
             , wins = 0
-            , start = Time.millisToPosix f
-            , curr = Time.millisToPosix f
+            , start = Time.millisToPosix 0
+            , curr = Time.millisToPosix 0
             }
     in
-        (model, Cmd.none)
+        model
 
 
 newGame : Random.Seed -> (Grid Color, Random.Seed)
@@ -108,7 +108,7 @@ decode =
         (\status grid games wins start curr ->
             { status = status
             , grid = grid 
-            , seed = Random.initialSeed <| modBy 100 <| Time.posixToMillis curr
+            , seed = Random.initialSeed <| Time.posixToMillis curr
             , games = games
             , wins = wins
             , start = start
@@ -120,8 +120,8 @@ decode =
         --(Decode.field "seed" (Decode.map decodeSeed (Decode.list Decode.int)))
         (Decode.field "games" Decode.int)
         (Decode.field "wins" Decode.int)
-        (Decode.field "start" (Decode.map decodeTime Decode.string))
-        (Decode.field "curr" (Decode.map decodeTime Decode.string))
+        (Decode.field "start" (Decode.map decodeTime Decode.int))
+        (Decode.field "curr" (Decode.map decodeTime Decode.int))
 
 
 encode : Int -> Model -> String
@@ -174,8 +174,8 @@ encodeState state =
             "new"
 
 
-decodeTime : String -> Time.Posix
-decodeTime string = Time.millisToPosix <| Maybe.withDefault 0 <| String.toInt string
+decodeTime : Int -> Time.Posix
+decodeTime t = Time.millisToPosix t
 
 
 {-decodeSeed : List Int -> Random.Seed

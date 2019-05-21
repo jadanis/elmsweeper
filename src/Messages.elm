@@ -1,6 +1,6 @@
-port module Messages exposing (Msg(..),update,saveToStorage)
+port module Messages exposing (Msg(..),update,saveToStorage,save)
 
-import Model exposing (..)
+import Model exposing (Model,State(..),newGame)
 import Dict
 import Color exposing (..)
 import Grid exposing (..)
@@ -22,6 +22,7 @@ type Msg
     | Noop
     | Pause
     | Continue
+    | Reset
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -48,9 +49,9 @@ update msg model =
         Tick newTime ->
             case model.status of
                 Playing ->
-                    ({model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000}, Cmd.none)
+                    saveToStorage <| {model | curr = Time.millisToPosix <| Time.posixToMillis model.curr + 1000}
                 _ ->
-                    (model,Cmd.none)
+                    saveToStorage <| model
 
         Pause ->
             case model.status of
@@ -66,6 +67,14 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
         
+        Reset ->
+            let
+                m = newModel model
+                nm = {m | games = 0, wins = 0}
+            in
+                (nm,Cmd.none)
+            
+
         _ ->
             (model, Cmd.none)
 
@@ -81,9 +90,9 @@ newModel model =
 flag : (Float,Float) -> Model -> Model 
 flag (x,y) model =
     let
-        nx = 30 * (round x // 30)
+        nx = 30 * ((round x - 5 ) // 30)
                
-        ny = 30 * (round y // 30)
+        ny = 30 * ((round y - 5 ) // 30)
                 
         grid = flag_cell model.grid (nx, ny)
     in
@@ -108,9 +117,9 @@ flag_cell grid pos =
 reveal : (Float,Float) -> Model -> Model
 reveal (x,y) model =
     let
-        nx = 30 * (round x // 30)
+        nx = 30 * ((round x - 5 ) // 30)
 
-        ny = 30 * (round y // 30)
+        ny = 30 * ((round y - 5) // 30)
 
         grid = reveal_cell model.grid (nx,ny)
             
@@ -166,7 +175,7 @@ reveal_cell grid pos =
             if r_cell.flag || r_cell.rev then
                 r_cell 
             else
-                { r_cell | rev = True, val = (uncovered neigh), neigh = neigh}
+                { r_cell | rev = True, val = uncovered neigh, neigh = neigh}
         
         lost = (r_cell.mine && not r_cell.flag)
         
