@@ -22,6 +22,7 @@ type Msg
     | Noop
     | Pause
     | Continue
+    | Reset
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -66,6 +67,14 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
         
+        Reset ->
+            let
+                m = newModel model
+                nm = {m | games = 0, wins = 0}
+            in
+                (nm,Cmd.none)
+            
+
         _ ->
             (model, Cmd.none)
 
@@ -166,7 +175,7 @@ reveal_cell grid pos =
             if r_cell.flag || r_cell.rev then
                 r_cell 
             else
-                { r_cell | rev = True, val = (uncovered neigh), neigh = neigh}
+                { r_cell | rev = True, val = uncovered neigh, neigh = neigh}
         
         lost = (r_cell.mine && not r_cell.flag)
         
