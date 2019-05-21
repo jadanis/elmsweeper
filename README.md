@@ -1,6 +1,6 @@
 # Elm Sweeper
 
-[![Screenshot](elm_sweeper.png)](readme.md)
+[![Screenshot](elm_sweeper.png)](https://github.com/jadanis/elmsweeper/blob/caching/README.md)
 
 ## A Side Project
 I've been meaning to code my own Mine Sweeper for a long time now. I stumbled on Elm recently and saw the [Flatris clone](https://github.com/w0rm/elm-flatris), (which I borrowed from heavily). This inspired me to build Mine Sweeper and learn Elm. This is the result of that effort (although a work in progress).
