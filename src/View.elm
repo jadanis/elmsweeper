@@ -11,6 +11,62 @@ import Svg exposing (..)
 import Svg.Attributes as SvgAttrs
 import Time
 
+
+view : Model -> Html Msg
+view model = 
+    div
+        [ Html.Attributes.style "width" "600px"
+        , Html.Attributes.style "height" "600px"
+        , Html.Attributes.style "position" "absolute"
+        , Html.Attributes.style "left" "0"
+        , Html.Attributes.style "top" "0"
+        ]
+        [ renderGrid model.grid 
+        , renderPanel model
+        ]
+
+
+renderGrid : Grid Color -> Html Msg
+renderGrid grid =
+    List.map renderBox grid
+        |>  Svg.svg
+            [ Html.Attributes.style "margin" "5px"
+            , SvgAttrs.width "300"
+            , SvgAttrs.height "300"
+            , Mouse.onClick (\event -> Reveal event.clientPos)
+            , onRightClick (\event -> Flag event.clientPos)
+            ]
+
+
+renderPanel : Model -> Html Msg
+renderPanel model =
+    div
+    [ Html.Attributes.style "bottom" "80px"
+    , Html.Attributes.style "color" <| toString covered
+    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
+    , Html.Attributes.style "font-size" "14pt"
+    , Html.Attributes.style "left" "300px"
+    , Html.Attributes.style "padding" "0 30px"
+    , Html.Attributes.style "position" "absolute"
+    , Html.Attributes.style "right" "0"
+    , Html.Attributes.style "top" "0"
+    ]
+    [ renderTitle "Elm Sweeper"
+    , renderLabel "Games"
+    , renderLabel <| String.fromInt model.games
+    , renderLabel "Wins"
+    , renderLabel <| String.fromInt model.wins
+    , renderLabel "Time"
+    , renderTime model.start model.curr
+    , renderGameButton <| actionButton model.status  
+    , renderGameButton ("Reset",Reset)
+    ]
+
+
+onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
+onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
+
+
 renderBox : Cell Color -> Svg Msg
 renderBox cell =
     let
@@ -48,51 +104,43 @@ renderBox cell =
                 [box , text]
             else
                 [ box ]
-
-
-renderGrid : Grid Color -> Html Msg
-renderGrid grid =
-    List.map renderBox grid
-        |>  Svg.svg
-            [ SvgAttrs.width "300"
-            , SvgAttrs.height "300"
-            ]
-
-
-onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
-onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
-
-renderGameButton : State -> Html Msg
-renderGameButton state =
-    let
-        (txt, msg) =
-            case state of 
-                Playing ->
-                    ("Pause", Pause)
                 
-                Lost ->
-                    ("New Game",NewGame)
-                
-                Paused ->
-                    ("Continue", Continue)
-                
-                Won ->
-                    ("New Game",NewGame)
-    in
-        button
-            [ Mouse.onClick (\event -> msg)
-            , Html.Attributes.style "background" <| toString covered
-            , Html.Attributes.style "color" <| toString black
-            , Html.Attributes.style "display" "block"
-            , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
-            , Html.Attributes.style "font-size" "10pt"
-            , Html.Attributes.style "height" "50px"
-            , Html.Attributes.style "width" "100px"
-            , Html.Attributes.style "border" "0"
-            , Html.Attributes.style "cursor" "pointer"
 
-            ]
-            [ Html.text txt ]
+renderGameButton : (String, Msg) -> Html Msg
+renderGameButton (txt, msg) =
+    button
+        [ Mouse.onClick (\event -> msg)
+        , Html.Attributes.style "background" <| toString covered
+        , Html.Attributes.style "color" <| toString black
+        , Html.Attributes.style "display" "block"
+        , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
+        , Html.Attributes.style "font-size" "10pt"
+        , Html.Attributes.style "height" "50px"
+        , Html.Attributes.style "width" "100px"
+        , Html.Attributes.style "border" "0"
+        , Html.Attributes.style "cursor" "pointer"
+        , Html.Attributes.style "margin" "5px 0px"
+        ]
+        [ Html.text txt ]
+
+
+actionButton : State -> (String, Msg)
+actionButton state = 
+    case state of 
+        Playing ->
+            ("Pause", Pause)
+                
+        Lost ->
+            ("New Game",NewGame)
+                
+        Paused ->
+            ("Continue", Continue)
+                
+        Won ->
+            ("New Game",NewGame)
+                
+        New ->
+            ("Pause",Pause)    
 
 
 renderLabel : String -> Html Msg
@@ -109,7 +157,7 @@ renderLabel str =
 renderTitle : String -> Html Msg
 renderTitle str =
     div
-        [ Html.Attributes.style "color" <| toString <| darken 20 flagged
+        [ Html.Attributes.style "color" <| toString <| flagged
         , Html.Attributes.style "font-size" "40px"
         , Html.Attributes.style "line-height" "60px"
         , Html.Attributes.style "margin" "30px 0 0"
@@ -126,42 +174,3 @@ renderTime start curr =
         txt = (String.fromInt minute) ++ ":" ++ (if second < 10 then "0" else "") ++ (String.fromInt second)
     in
         renderLabel txt
-
-renderPanel : Model -> Html Msg
-renderPanel model =
-    div
-    [ Html.Attributes.style "bottom" "80px"
-    , Html.Attributes.style "color" <| toString covered
-    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-    , Html.Attributes.style "font-size" "14pt"
-    , Html.Attributes.style "left" "300px"
-    , Html.Attributes.style "padding" "0 30px"
-    , Html.Attributes.style "position" "absolute"
-    , Html.Attributes.style "right" "0"
-    , Html.Attributes.style "top" "0"
-    ]
-    [ renderTitle "Elm Sweeper"
-    , renderLabel "Games"
-    , renderLabel <| String.fromInt model.games
-    , renderLabel "Wins"
-    , renderLabel <| String.fromInt model.wins
-    , renderLabel "Time"
-    , renderTime model.start model.curr
-    , renderGameButton model.status  
-    ]
-
-
-view : Model -> Html Msg
-view model = 
-    div
-        [ Html.Attributes.style "width" "600px"
-        , Html.Attributes.style "height" "600px"
-        , Html.Attributes.style "position" "absolute"
-        , Html.Attributes.style "left" "0"
-        , Html.Attributes.style "top" "0"
-        , Mouse.onClick (\event -> Reveal event.clientPos)
-        , onRightClick (\event -> Flag event.clientPos)
-        ]
-        [ renderGrid model.grid 
-        , renderPanel model
-        ]

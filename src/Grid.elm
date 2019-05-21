@@ -27,17 +27,9 @@ blankCell a =
 type alias Grid a =
     List (Cell a)
 
-
-mapToList : (a -> (Int, Int) -> b) -> Grid a -> List b
-mapToList fun =
-    List.map (\{val, pos} -> fun val pos)
-
-
 empty : Grid a
 empty = 
     []
-
-
 
 decode : Decode.Decoder a -> Decode.Decoder (Grid a)
 decode cell =

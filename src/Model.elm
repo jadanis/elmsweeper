@@ -1,12 +1,12 @@
-module Model exposing (..)
+module Model exposing (State(..),Model,init,encode,decode,newGame)
 
 import Random
-import Grid exposing (..)
-import Color exposing (..)
-import Dict
-import Time
+import Grid exposing (Grid, encode, decode,blankCell)
+import Color exposing (Color,covered,encode,decode)
+import Time exposing(Posix, millisToPosix, posixToMillis)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Set exposing (fromList, toList)
 
 
 type State
@@ -14,6 +14,7 @@ type State
     | Lost
     | Won
     | Paused
+    | New
 
 
 type alias Model =
@@ -26,41 +27,65 @@ type alias Model =
     , curr : Time.Posix
     }
 
-
-newGame : Random.Seed -> (Grid Color, Random.Seed)
-newGame seed = random seed 10 10
-    
-
 init : Model
 init = 
     let
         (grid, seed) =
             newGame (Random.initialSeed 0)
+
+        model = 
+            { status = New
+            , grid = grid 
+            , seed = seed
+            , games = 0
+            , wins = 0
+            , start = Time.millisToPosix 0
+            , curr = Time.millisToPosix 0
+            }
     in
-        { status = Playing
-        , grid = grid 
-        , seed = seed
-        , games = 0
-        , wins = 0
-        , start = Time.millisToPosix 0
-        , curr = Time.millisToPosix 0
-        }
+        model
+
+
+newGame : Random.Seed -> (Grid Color, Random.Seed)
+newGame seed = random seed 10 10
+
 
 random : Random.Seed -> Int -> Int -> (Grid Color, Random.Seed)
 random seed height width =
     let
+        num_mines = (height * width) // 5
+
+        mineGenerator = randomCoor height width
+
+        (m,nseed) =
+            setStep num_mines seed mineGenerator
+
         mines = 
-            Random.list (height * width) (Random.int 0 5)
-        
-        cell n =
-            let
-                ncell = blankCell covered
-                mine = (n == 0)
-            in
-                { ncell | mine = mine }
+            List.map (\(x,y) -> (x*30,y*30)) m
+
+        cell n = blankCell covered
+
         field nums = correct height width (List.map cell nums)
+
+        grid = List.map (\c -> if List.member c.pos mines then {c | mine = True} else c) (field <| List.range 0 <| (height * width) - 1)
     in
-        Random.step (Random.map field mines) seed
+        (grid, nseed)
+
+
+setStep : Int -> Random.Seed -> Random.Generator comparable -> (List comparable, Random.Seed)
+setStep n seed gen =
+    let
+        listgen = Random.list n gen
+        (a,nseed) = Random.step listgen seed
+        s = Set.fromList a
+        again = Set.size s < n
+    in
+        if again then (setStep n nseed gen) else (Set.toList s,nseed)
+
+
+randomCoor : Int -> Int -> Random.Generator (Int, Int)
+randomCoor h w =
+    Random.pair (Random.int 0 <| h - 1) (Random.int 0 <| w - 1)
 
 
 correct : Int -> Int -> Grid a -> Grid a
@@ -73,47 +98,30 @@ correct h w grid =
                     {cell | pos = (30 * (t//w), 30 * (modBy w t))}
             in
                 List.map f gridIdx
-        dict = Dict.fromList (List.map (\cell -> (cell.pos,cell)) gridp)
-        getNeigh d key =
-            case (Dict.get key d) of
-                Nothing ->
-                    0
-                Just c ->
-                    if c.mine then
-                        1
-                    else
-                        0
-        cellsn (a,b) =
-            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
-        neighbors (x,y) =
-            List.sum (List.map (getNeigh dict) (cellsn (x,y)))
-        ccell cell =
-            {cell | neigh = (neighbors cell.pos)}
     in
-        List.map ccell gridp
+        gridp
 
 
 decode : Decode.Decoder Model
 decode =
     Decode.map6
         (\status grid games wins start curr ->
-            { init
-                | status = status
-                , grid = grid  
-                --, seed = seed
-                , games = games
-                , wins = wins
-                , start = start
-                , curr = curr
-            }    
+            { status = status
+            , grid = grid 
+            , seed = Random.initialSeed <| Time.posixToMillis curr
+            , games = games
+            , wins = wins
+            , start = start
+            , curr = curr
+            }   
         )
         (Decode.field "status" (Decode.map decodeState Decode.string))
         (Decode.field "grid" (Grid.decode Color.decode))
         --(Decode.field "seed" (Decode.map decodeSeed (Decode.list Decode.int)))
         (Decode.field "games" Decode.int)
         (Decode.field "wins" Decode.int)
-        (Decode.field "start" (Decode.map decodeTime Decode.string))
-        (Decode.field "curr" (Decode.map decodeTime Decode.string))
+        (Decode.field "start" (Decode.map decodeTime Decode.int))
+        (Decode.field "curr" (Decode.map decodeTime Decode.int))
 
 
 encode : Int -> Model -> String
@@ -139,8 +147,12 @@ decodeState string =
             Lost
         "won" ->
             Won
-        _ ->
+        "playing" ->
             Playing
+        "paused" ->
+            Paused
+        _ ->
+            New
 
 
 
@@ -158,9 +170,12 @@ encodeState state =
         Lost ->
             "lost"
 
+        New ->
+            "new"
 
-decodeTime : String -> Time.Posix
-decodeTime string = Time.millisToPosix <| Maybe.withDefault 0 <| String.toInt string
+
+decodeTime : Int -> Time.Posix
+decodeTime t = Time.millisToPosix t
 
 
 {-decodeSeed : List Int -> Random.Seed
