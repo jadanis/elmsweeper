@@ -58,7 +58,8 @@ renderPanel model =
     , renderLabel <| String.fromInt model.wins
     , renderLabel "Time"
     , renderTime model.start model.curr
-    , renderGameButton model.status  
+    , renderGameButton <| actionButton model.status  
+    , renderGameButton ("Reset",Reset)
     ]
 
 
@@ -105,40 +106,41 @@ renderBox cell =
                 [ box ]
                 
 
-renderGameButton : State -> Html Msg
-renderGameButton state =
-    let
-        (txt, msg) =
-            case state of 
-                Playing ->
-                    ("Pause", Pause)
+renderGameButton : (String, Msg) -> Html Msg
+renderGameButton (txt, msg) =
+    button
+        [ Mouse.onClick (\event -> msg)
+        , Html.Attributes.style "background" <| toString covered
+        , Html.Attributes.style "color" <| toString black
+        , Html.Attributes.style "display" "block"
+        , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
+        , Html.Attributes.style "font-size" "10pt"
+        , Html.Attributes.style "height" "50px"
+        , Html.Attributes.style "width" "100px"
+        , Html.Attributes.style "border" "0"
+        , Html.Attributes.style "cursor" "pointer"
+        , Html.Attributes.style "margin" "5px 0px"
+        ]
+        [ Html.text txt ]
+
+
+actionButton : State -> (String, Msg)
+actionButton state = 
+    case state of 
+        Playing ->
+            ("Pause", Pause)
                 
-                Lost ->
-                    ("New Game",NewGame)
+        Lost ->
+            ("New Game",NewGame)
                 
-                Paused ->
-                    ("Continue", Continue)
+        Paused ->
+            ("Continue", Continue)
                 
-                Won ->
-                    ("New Game",NewGame)
+        Won ->
+            ("New Game",NewGame)
                 
-                New ->
-                    ("Pause",Pause)
-    in
-        button
-            [ Mouse.onClick (\event -> msg)
-            , Html.Attributes.style "background" <| toString covered
-            , Html.Attributes.style "color" <| toString black
-            , Html.Attributes.style "display" "block"
-            , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
-            , Html.Attributes.style "font-size" "10pt"
-            , Html.Attributes.style "height" "50px"
-            , Html.Attributes.style "width" "100px"
-            , Html.Attributes.style "border" "0"
-            , Html.Attributes.style "cursor" "pointer"
-            , Html.Attributes.style "margin" "5px 0px"
-            ]
-            [ Html.text txt ]
+        New ->
+            ("Pause",Pause)    
 
 
 renderLabel : String -> Html Msg
@@ -155,7 +157,7 @@ renderLabel str =
 renderTitle : String -> Html Msg
 renderTitle str =
     div
-        [ Html.Attributes.style "color" <| toString <| exploded
+        [ Html.Attributes.style "color" <| toString <| flagged
         , Html.Attributes.style "font-size" "40px"
         , Html.Attributes.style "line-height" "60px"
         , Html.Attributes.style "margin" "30px 0 0"
