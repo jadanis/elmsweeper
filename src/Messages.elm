@@ -1,10 +1,10 @@
 port module Messages exposing (Msg(..),update,saveToStorage,save)
 
 import Model exposing (Model,State(..),newGame)
-import Dict
-import Color exposing (..)
-import Grid exposing (..)
-import Time
+import Dict exposing (get, fromList)
+import Color exposing (Color,flagged,uncovered,covered,exploded)
+import Grid exposing (Grid,blankCell)
+import Time exposing (Posix,millisToPosix,posixToMillis)
 
 port save : String -> Cmd msg
 
@@ -121,7 +121,7 @@ reveal (x,y) model =
 
         ny = 30 * ((round y - 5) // 30)
 
-        grid = reveal_cell model.grid (nx,ny)
+        grid = reveal_cell (nx,ny) model.grid
             
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid  
 
@@ -141,8 +141,62 @@ reveal (x,y) model =
         { model | grid = grid, status = status, games = games, wins = wins }
 
 
-reveal_cell : Grid Color -> (Int, Int) -> Grid Color
-reveal_cell grid pos =
+reveal_cell : (Int, Int) -> Grid Color -> Grid Color
+reveal_cell pos grid =
+    let
+        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
+
+        getNeigh d key =
+            case (Dict.get key d) of
+                Nothing ->
+                    0
+                Just c ->
+                    if c.mine then
+                        1
+                    else
+                        0
+
+        cellsn (a,b) =
+            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+        
+        neighbors (x,y) =
+            List.sum (List.map (getNeigh dict) (cellsn (x,y)))
+        
+        r_cell =
+            case (Dict.get pos dict) of
+                Nothing ->
+                    blankCell covered
+                Just c ->
+                    c
+        
+        neigh = neighbors r_cell.pos    
+
+        n_cell = 
+                    if r_cell.flag || r_cell.rev then
+                        r_cell
+                    else
+                        { r_cell | rev = True, val = uncovered neigh, neigh = neigh }
+    in
+        if neigh == 0 && n_cell /= r_cell then
+            let
+                cells_to_reveal = cellsn r_cell.pos
+                old_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
+                new_grid = List.foldr reveal_cell old_grid cells_to_reveal
+            in
+                new_grid
+        else
+            let           
+                lost = (r_cell.mine && not r_cell.flag)
+
+                loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered <| neighbors cell.pos), rev = (if cell.mine then False else True), neigh = neighbors cell.pos}) grid
+
+                new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
+            in
+                if lost then loseGrid else new_grid
+
+
+{-safe_reveal_cell : Grid Color -> (Int,Int) -> Grid Color
+safe_reveal_cell grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
@@ -176,12 +230,30 @@ reveal_cell grid pos =
                 r_cell 
             else
                 { r_cell | rev = True, val = uncovered neigh, neigh = neigh}
-        
-        lost = (r_cell.mine && not r_cell.flag)
-        
-        loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered <| neighbors cell.pos), rev = (if cell.mine then False else True), neigh = neighbors cell.pos}) grid
 
         new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
 
     in
-        if lost then loseGrid else new_grid
+        new_grid
+
+
+zeroize grid pos =
+    let
+        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
+
+        getNeigh d key = 
+            case (Dict.get key d) of
+                Nothing ->
+                    0
+                Just c ->
+                    if c.mine then
+                        1
+                    else
+                        0
+        
+        cellsn (a,b) =
+            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+
+        neighborhs (x)
+    in-}
+    
