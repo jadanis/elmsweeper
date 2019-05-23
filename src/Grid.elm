@@ -1,7 +1,7 @@
 module Grid exposing (..)
 
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as Decode exposing (field,map2,map6,index,int,bool,list)
+import Json.Encode as Encode exposing (list,object)
 
 type alias Cell a =
     { val : a
@@ -16,7 +16,7 @@ type alias Cell a =
 blankCell : a -> Cell a
 blankCell a =
     { val = a
-    , pos = (0,0)
+    , pos = (-1,-1)
     , mine = False
     , flag = False
     , neigh = 0
