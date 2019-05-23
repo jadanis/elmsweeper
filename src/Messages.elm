@@ -1,10 +1,11 @@
 port module Messages exposing (Msg(..),update,saveToStorage,save)
 
 import Model exposing (Model,State(..),newGame)
-import Dict exposing (get, fromList)
-import Color exposing (Color,flagged,uncovered,covered,exploded)
-import Grid exposing (Grid,blankCell)
-import Time exposing (Posix,millisToPosix,posixToMillis)
+import Dict exposing (Dict)
+import Color exposing (..)
+import Grid exposing (..)
+import Time
+import Set exposing (Set)
 
 port save : String -> Cmd msg
 
@@ -121,7 +122,7 @@ reveal (x,y) model =
 
         ny = 30 * ((round y - 5) // 30)
 
-        grid = reveal_cell (nx,ny) model.grid
+        grid = reveal_cell model.grid (nx,ny)
             
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid  
 
@@ -141,8 +142,8 @@ reveal (x,y) model =
         { model | grid = grid, status = status, games = games, wins = wins }
 
 
-reveal_cell : (Int, Int) -> Grid Color -> Grid Color
-reveal_cell pos grid =
+reveal_cell : Grid Color -> (Int, Int) -> Grid Color
+reveal_cell grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
@@ -157,61 +158,7 @@ reveal_cell pos grid =
                         0
 
         cellsn (a,b) =
-            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
-        
-        neighbors (x,y) =
-            List.sum (List.map (getNeigh dict) (cellsn (x,y)))
-        
-        r_cell =
-            case (Dict.get pos dict) of
-                Nothing ->
-                    blankCell covered
-                Just c ->
-                    c
-        
-        neigh = neighbors r_cell.pos    
-
-        n_cell = 
-                    if r_cell.flag || r_cell.rev then
-                        r_cell
-                    else
-                        { r_cell | rev = True, val = uncovered neigh, neigh = neigh }
-    in
-        if neigh == 0 && n_cell /= r_cell then
-            let
-                cells_to_reveal = cellsn r_cell.pos
-                old_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
-                new_grid = List.foldr reveal_cell old_grid cells_to_reveal
-            in
-                new_grid
-        else
-            let           
-                lost = (r_cell.mine && not r_cell.flag)
-
-                loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered <| neighbors cell.pos), rev = (if cell.mine then False else True), neigh = neighbors cell.pos}) grid
-
-                new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
-            in
-                if lost then loseGrid else new_grid
-
-
-{-safe_reveal_cell : Grid Color -> (Int,Int) -> Grid Color
-safe_reveal_cell grid pos =
-    let
-        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
-
-        getNeigh d key =
-            case (Dict.get key d) of
-                Nothing ->
-                    0
-                Just c ->
-                    if c.mine then
-                        1
-                    else
-                        0
-
-        cellsn (a,b) =
-            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
         
         neighbors (x,y) =
             List.sum (List.map (getNeigh dict) (cellsn (x,y)))
@@ -224,36 +171,105 @@ safe_reveal_cell grid pos =
                     c
         
         neigh = neighbors r_cell.pos
-
-        n_cell =
-            if r_cell.flag || r_cell.rev then
-                r_cell 
-            else
-                { r_cell | rev = True, val = uncovered neigh, neigh = neigh}
-
-        new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
-
     in
-        new_grid
+        if (neigh == 0) && not (r_cell.mine || r_cell.flag) then
+            let
+                intToTupDict = Dict.fromList <| List.indexedMap Tuple.pair <| Dict.keys dict
+                tupToIntDict = Dict.fromList <| List.map (\(x,y) -> (y,x)) <| List.indexedMap Tuple.pair <| Dict.keys dict
+                myFilter n =
+                    case Dict.get n intToTupDict of
+                        Nothing ->
+                            False
+                        Just p ->
+                            (neighbors p) == 0
+                
+                graph =
+                    let
+                        temp_dict = Dict.map (\k v -> cellsn v) intToTupDict
+                    in
+                        Dict.map (\k v -> List.map (Maybe.withDefault -1 << (flip Dict.get <| tupToIntDict)) v) temp_dict
 
+                root_find n = 
+                    let
+                        p = Maybe.withDefault (-1,-1) <| Dict.get n intToTupDict
+                        c = Maybe.withDefault (blankCell covered) <| Dict.get p dict
+                    in
+                        if c == r_cell then
+                            n
+                        else
+                        root_find (n+1)
+                
+                root = root_find 0
 
-zeroize grid pos =
-    let
-        dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
+                tup_list = List.map 
+                    ( (intToTupDict
+                    |> flip Dict.get)
+                    >> Maybe.withDefault (-1,-1)
+                    )
+                    (findDeps myFilter root graph)
+                
+                cell_list = List.map 
+                    ( (dict 
+                    |> flip Dict.get)
+                    >> Maybe.withDefault (blankCell covered)
+                    )
+                    tup_list
 
-        getNeigh d key = 
-            case (Dict.get key d) of
-                Nothing ->
-                    0
-                Just c ->
-                    if c.mine then
-                        1
+                r_cell_list = List.map (\c -> {c | rev = True, neigh = neighbors c.pos, val = uncovered <| neighbors c.pos }) cell_list
+                        
+                n_dict = Dict.fromList <| List.map (\c -> (c.pos,c)) r_cell_list
+
+                replace_cell c =
+                    case Dict.get c.pos n_dict of
+                        Nothing ->
+                            c
+                        Just nc ->
+                            nc
+            in
+                List.map replace_cell grid
+        else
+            let
+                n_cell =
+                    if r_cell.flag || r_cell.rev then
+                        r_cell 
                     else
-                        0
+                        { r_cell | rev = True, val = uncovered neigh, neigh = neigh}
         
-        cellsn (a,b) =
-            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+                lost = (r_cell.mine && not r_cell.flag)
+        
+                loseGrid = List.map (\cell -> {cell | flag = False, val = (if cell.mine then exploded else uncovered <| neighbors cell.pos), rev = (if cell.mine then False else True), neigh = neighbors cell.pos}) grid
 
-        neighborhs (x)
-    in-}
-    
+                new_grid = List.map (\cell -> if cell.pos == pos then n_cell else cell) grid
+
+            in
+                if lost then loseGrid else new_grid
+
+
+findDeps f root graph =
+    findDepsHelp f Set.empty [root] graph
+
+findDepsHelp : (comparable -> Bool) -> Set comparable -> List comparable -> Dict comparable (List comparable) -> List comparable
+findDepsHelp f visited unvisited graph =
+    case unvisited of
+        [] ->
+            Set.toList visited
+        next :: rest ->
+            if Set.member next visited then
+                findDepsHelp f visited rest graph
+            else
+                let
+                    newVisited =
+                        Set.insert next visited
+                    nextDeps = 
+                        if f next then
+                            Maybe.withDefault [] (Dict.get next graph)
+                        else
+                            []
+                    newUnvisited =
+                        nextDeps ++ rest 
+                in
+                    findDepsHelp f newVisited newUnvisited graph        
+
+
+flip : (a -> b -> c) -> (b -> a -> c)
+flip f x y = f y x
