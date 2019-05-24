@@ -1,13 +1,10 @@
 
-import Browser
+import Browser exposing (element)
 import Messages exposing (Msg(..),update,save)
 import Model exposing (Model,init,decode)
 import View exposing (view)
-import Time
-import Task
-import Random
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Time exposing (every)
+import Json.Decode as Decode exposing (decodeValue, errorToString)
 
 
 main =
