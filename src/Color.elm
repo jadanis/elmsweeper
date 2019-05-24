@@ -1,7 +1,7 @@
 module Color exposing (..)
 
-import Json.Decode as Decode 
-import Json.Encode as Encode 
+import Json.Decode as Decode exposing (index, int)
+import Json.Encode as Encode exposing (int,list)
 
 type Color
     = Color { red : Int, green : Int, blue : Int }
