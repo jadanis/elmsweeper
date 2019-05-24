@@ -291,15 +291,15 @@ find_p : Float -> Float -> Float -> Float
 find_p h w d =
     let
         size = h * w
-        mines = d*size
+        {--mines = d*size
         helper m s =
             if m == s then
                 1.0
             else
-                (m / s) * (helper m (s-1))
-        {--corner = (1-d)^4
+                (m / s) * (helper m (s-1))--}
+        {--}corner = (1-d)^4
         side = (1-d)^6
         body = (1-d)^9--}
     in
-        --(4*corner + 2*(w-2)*side + 2*(h-2)*side + (w-2)*(h-2)*body)/size
-        helper mines size
+        (4*corner + 2*(w-2)*side + 2*(h-2)*side + (w-2)*(h-2)*body)/size
+        --helper mines size
