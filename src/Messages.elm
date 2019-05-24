@@ -85,7 +85,7 @@ newModel model =
         (grid,seed)=
             newGame model.seed
     in
-        {model | grid = grid, seed = seed, status = New, start = Time.millisToPosix 0, curr = Time.millisToPosix 0}
+        {model | grid = grid, seed = seed, status = New, start = Time.millisToPosix 0, curr = Time.millisToPosix 0, flags = 0}
 
 
 flag : (Float,Float) -> Model -> Model 
@@ -95,24 +95,35 @@ flag (x,y) model =
                
         ny = 30 * ((round y - 5 ) // 30)
                 
-        grid = flag_cell model.grid (nx, ny)
+        (grid,inc) = flag_cell model.grid (nx, ny)
     in
-        { model | grid = grid, status = Playing }
+        { model | grid = grid, status = Playing , flags = model.flags + inc}
 
 
-flag_cell : Grid Color -> (Int,Int) -> Grid Color
+flag_cell : Grid Color -> (Int,Int) -> (Grid Color,Int)
 flag_cell grid pos =
     let
         dict = Dict.fromList <| List.map (\cell -> (cell.pos,cell)) grid
 
-        f_cell =
+        (f_cell, f) =
             case (Dict.get pos dict) of 
                 Nothing ->
-                    blankCell covered
+                    (blankCell covered, False)
                 Just c ->
-                    { c | flag = (if (c.rev || c.flag) then False else True), val = (if c.rev then c.val else (if c.flag then covered else flagged))}
+                    ({ c | flag = (if (c.rev || c.flag) then False else True), val = (if c.rev then c.val else (if c.flag then covered else flagged))}, c.flag)
+        
+        r_grid = List.map (\cell -> if cell.pos == pos then f_cell else cell) grid
+        
+        inc = 
+            if f_cell.flag && not f then
+                1
+            else
+                if f && not f_cell.flag then
+                    -1
+                else
+                    0
     in
-        List.map (\cell -> if cell.pos == pos then f_cell else cell) grid
+        (r_grid, inc)
 
 
 reveal : (Float,Float) -> Model -> Model
