@@ -91,11 +91,10 @@ renderBox cell =
             ]
             []
         text = Svg.text_
-                [ SvgAttrs.fill (toString black)
+                [ SvgAttrs.fill (toString flagged)
                 , SvgAttrs.x (String.fromInt <| x + 15)
                 , SvgAttrs.y (String.fromInt <| y + 15)
                 , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-                , Html.Attributes.style "color" (toString <| darken 10 color)
                 , Html.Attributes.style "font-size" "8pt"
                 ]
                 [ Svg.text (String.fromInt cell.neigh)] 
