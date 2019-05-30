@@ -1,6 +1,6 @@
 module Model exposing (State(..),Model,init,encode,decode,newGame)
 
-import Random exposing (initialSeed,step,list)
+import Random
 import Grid exposing (Grid, encode, decode,blankCell)
 import Color exposing (Color,covered,encode,decode)
 import Time exposing(Posix, millisToPosix, posixToMillis)
@@ -25,7 +25,6 @@ type alias Model =
     , wins : Int
     , start : Time.Posix
     , curr : Time.Posix
-    , flags : Int
     }
 
 init : Model
@@ -42,7 +41,6 @@ init =
             , wins = 0
             , start = Time.millisToPosix 0
             , curr = Time.millisToPosix 0
-            , flags = 0
             }
     in
         model
@@ -106,8 +104,8 @@ correct h w grid =
 
 decode : Decode.Decoder Model
 decode =
-    Decode.map7
-        (\status grid games wins start curr flags ->
+    Decode.map6
+        (\status grid games wins start curr ->
             { status = status
             , grid = grid 
             , seed = Random.initialSeed <| Time.posixToMillis curr
@@ -115,7 +113,6 @@ decode =
             , wins = wins
             , start = start
             , curr = curr
-            , flags = flags
             }   
         )
         (Decode.field "status" (Decode.map decodeState Decode.string))
@@ -125,7 +122,6 @@ decode =
         (Decode.field "wins" Decode.int)
         (Decode.field "start" (Decode.map decodeTime Decode.int))
         (Decode.field "curr" (Decode.map decodeTime Decode.int))
-        (Decode.field "flags" Decode.int)
 
 
 encode : Int -> Model -> String
@@ -140,7 +136,6 @@ encode indent model =
             , ("wins", Encode.int model.wins)
             , ("start", Encode.int <| Time.posixToMillis model.start)
             , ("curr", Encode.int <| Time.posixToMillis model.curr)
-            , ("flags", Encode.int model.flags)
             ]
         )
 

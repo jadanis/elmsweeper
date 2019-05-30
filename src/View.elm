@@ -57,11 +57,9 @@ renderPanel model =
     , renderLabel "Wins"
     , renderLabel <| String.fromInt model.wins
     , renderLabel "Grade"
-    , renderGrade model
+    , renderLabel <| grade model
     , renderLabel "Time"
     , renderTime model.start model.curr
-    , renderLabel "Mines Left"
-    , renderLabel <| String.fromInt <| 20 - model.flags
     , renderGameButton <| actionButton model.status  
     , renderGameButton ("Reset",Reset)
     ]
@@ -155,21 +153,6 @@ renderLabel str =
         , Html.Attributes.style "margin" "30px 0 0"
         ]
         [ Html.text str ]
-
-
-renderGrade : Model -> Html Msg
-renderGrade model =
-    renderLabel
-    <|
-    case model.status of
-        Won ->
-            "You won!"
-        Lost ->
-            "You lost! Kerplow!"
-        _ ->
-            grade model
-    
-
 
 
 renderTitle : String -> Html Msg
@@ -290,15 +273,10 @@ find_p : Float -> Float -> Float -> Float
 find_p h w d =
     let
         size = h * w
-        {--mines = d*size
-        helper m s =
-            if m == s then
-                1.0
-            else
-                (m / s) * (helper m (s-1))--}
-        {--}corner = (1-d)^4
+        corner = (1-d)^4
         side = (1-d)^6
-        body = (1-d)^9--}
+        body = (1-d)^9
     in
         (4*corner + 2*(w-2)*side + 2*(h-2)*side + (w-2)*(h-2)*body)/size
-        --helper mines size
+
+    
