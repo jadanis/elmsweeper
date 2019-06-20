@@ -296,7 +296,8 @@ find_p h w d =
                 1.0
             else
                 (m / s) * (helper m (s-1))--}
-        {--}corner = (1-d)^4
+        {--}
+        corner = (1-d)^4
         side = (1-d)^6
         body = (1-d)^9--}
     in
