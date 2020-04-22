@@ -7,8 +7,6 @@ import Color exposing (..)
 import Html exposing (Html, div, text, button)
 import Html.Events.Extra.Mouse as Mouse exposing (onClick, EventOptions, onWithOptions)
 import Html.Attributes exposing (style)
-import Svg exposing (..)
-import Svg.Attributes as SvgAttrs
 import Time exposing (posixToMillis)
 
 
@@ -19,7 +17,7 @@ view model =
         ]
         [ div 
             [Html.Attributes.class "menu"]
-            [ renderGrid model.grid
+            [ div [Html.Attributes.class "grid-container"] [renderGrid model.grid]
             , renderPanel model
             ]
         ]
@@ -28,10 +26,8 @@ view model =
 renderGrid : Grid Color -> Html Msg
 renderGrid grid =
     List.map renderBox grid
-        |>  Svg.svg
-            [ Html.Attributes.style "margin" "5px"
-            , SvgAttrs.width "300"
-            , SvgAttrs.height "300"
+        |>  div
+            [ Html.Attributes.class "grid"
             , Mouse.onClick (\event -> Reveal event.clientPos)
             , onRightClick (\event -> Flag event.clientPos)
             ]
@@ -61,43 +57,19 @@ onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg
 onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
 
 
-renderBox : Cell Color -> Svg Msg
+renderBox : Cell Color -> Html Msg
 renderBox cell =
     let
         color = cell.val
 
-        x = Tuple.first cell.pos
-
-        y = Tuple.second cell.pos
-
-        box = Svg.rect
-            [ SvgAttrs.width "30"
-            , SvgAttrs.height "30"
-            , SvgAttrs.fill (toString color)
-            , SvgAttrs.stroke (toString white)
-            , SvgAttrs.strokeWidth "2"
-            , SvgAttrs.x (String.fromInt x)
-            , SvgAttrs.y (String.fromInt y)
-            ]
-            []
-        text = Svg.text_
-                [ SvgAttrs.fill (toString flagged)
-                , SvgAttrs.x (String.fromInt <| x + 15)
-                , SvgAttrs.y (String.fromInt <| y + 15)
-                , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-                , Html.Attributes.style "font-size" "8pt"
-                ]
-                [ Svg.text (String.fromInt cell.neigh)] 
-    in
-        --box
-        Svg.g
-            []
-            <|
+        cont = 
             if cell.rev then
-                [box , text]
+                [Html.txt (String.fromInt cell.neigh)]
             else
-                [ box ]
-                
+                []
+    in
+        div [Html.Attributes.class "grid-item", Html.Attributes.style "background-color" color] cont
+
 
 renderGameButton : String -> (String, Msg) -> Html Msg
 renderGameButton cl (txt, msg) =
