@@ -1,0 +1,89 @@
+/* Pseudo class for CSS color variables */
+:root {
+  --covered: rgb(185,216,194);
+  --title-color: rgb(219,213,110);
+  --exploded: rgb(252,119,83);
+  --safe-green: rgb(102,213,209)
+}
+
+* {
+    box-sizing: border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+/* To center the game box */
+.centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+
+.menu {
+  height: 600px;
+  width: 900px;
+}
+
+  /* Create three equal columns that floats next to each other */
+/* For game panel column */
+.column {
+    float: left;
+    width: 33.33%;
+    height: 100%;
+    padding: 10px;
+    /*height: 300px; /* Should be removed. Only for demonstration */
+}
+
+/* For game grid column */
+.grid {
+      float: left;
+      width: 66.66%;
+      height: 100%;
+      padding: 10px;
+      /*height: 300px;*/
+}
+  
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Reserved for game title in panel */
+h2 {
+    color: var(--title-color);
+    font-size: 40px;
+    line-height: 60px;
+    margin: 30px 0 0;
+}
+
+/* for headers and stats in game panel */
+h3 {
+  color: var(--covered);
+  font-weight: 300;
+  line-height: 1;
+  margin: 30px 0 0;
+}
+
+button {
+  display: block;
+  font-size: 10pt;
+  font-weight: 300;
+  color: #666;
+  height: 50px;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  margin: 5px 0px;
+}
+
+/* for new game button */
+.newgame {
+  background: var(--safe-green);
+}
+
+/* for reset button */
+.reset{
+  background: var(--exploded);
+}
