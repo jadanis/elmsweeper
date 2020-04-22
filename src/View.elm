@@ -15,14 +15,13 @@ import Time exposing (posixToMillis)
 view : Model -> Html Msg
 view model = 
     div
-        [ Html.Attributes.style "width" "600px"
-        , Html.Attributes.style "height" "600px"
-        , Html.Attributes.style "position" "absolute"
-        , Html.Attributes.style "left" "0"
-        , Html.Attributes.style "top" "0"
+        [ Html.Attributes.class "centered"
         ]
-        [ renderGrid model.grid 
-        , renderPanel model
+        [ div 
+            [Html.Attributes.class "menu"]
+            [ renderGrid model.grid
+            , renderPanel model
+            ]
         ]
 
 
@@ -41,16 +40,7 @@ renderGrid grid =
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
-    [ Html.Attributes.style "bottom" "80px"
-    , Html.Attributes.style "color" <| toString covered
-    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-    , Html.Attributes.style "font-size" "14pt"
-    , Html.Attributes.style "left" "300px"
-    , Html.Attributes.style "padding" "0 30px"
-    , Html.Attributes.style "position" "absolute"
-    , Html.Attributes.style "right" "0"
-    , Html.Attributes.style "top" "0"
-    ]
+    [ Html.Attributes.class "column" ]
     [ renderTitle "Elm Sweeper"
     , renderLabel "Games"
     , renderLabel <| String.fromInt model.games
@@ -62,8 +52,8 @@ renderPanel model =
     , renderTime model.start model.curr
     , renderLabel "Mines Left"
     , renderLabel <| String.fromInt <| 20 - model.flags
-    , renderGameButton <| actionButton model.status  
-    , renderGameButton ("Reset",Reset)
+    , renderGameButton "newgame" <| actionButton model.status  
+    , renderGameButton "reset" ("Reset",Reset)
     ]
 
 
@@ -109,20 +99,11 @@ renderBox cell =
                 [ box ]
                 
 
-renderGameButton : (String, Msg) -> Html Msg
-renderGameButton (txt, msg) =
+renderGameButton : String -> (String, Msg) -> Html Msg
+renderGameButton cl (txt, msg) =
     button
         [ Mouse.onClick (\event -> msg)
-        , Html.Attributes.style "background" <| toString covered
-        , Html.Attributes.style "color" <| toString black
-        , Html.Attributes.style "display" "block"
-        , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
-        , Html.Attributes.style "font-size" "10pt"
-        , Html.Attributes.style "height" "50px"
-        , Html.Attributes.style "width" "100px"
-        , Html.Attributes.style "border" "0"
-        , Html.Attributes.style "cursor" "pointer"
-        , Html.Attributes.style "margin" "5px 0px"
+        , Html.Attributes.class cl
         ]
         [ Html.text txt ]
 
@@ -148,13 +129,7 @@ actionButton state =
 
 renderLabel : String -> Html Msg
 renderLabel str =
-    div
-        [ Html.Attributes.style "color" <| toString <| covered
-        , Html.Attributes.style "font-weight" "300"
-        , Html.Attributes.style "line-height" "1"
-        , Html.Attributes.style "margin" "30px 0 0"
-        ]
-        [ Html.text str ]
+    h3 [] [ Html.text str ]
 
 
 renderGrade : Model -> Html Msg
@@ -168,19 +143,10 @@ renderGrade model =
             "You lost! Kerplow!"
         _ ->
             grade model
-    
-
-
 
 renderTitle : String -> Html Msg
 renderTitle str =
-    div
-        [ Html.Attributes.style "color" <| toString <| flagged
-        , Html.Attributes.style "font-size" "40px"
-        , Html.Attributes.style "line-height" "60px"
-        , Html.Attributes.style "margin" "30px 0 0"
-        ]
-        [ Html.text str ]
+    h2 [] [ Html.text str ]
 
 
 renderTime : Time.Posix -> Time.Posix -> Html Msg
