@@ -59,6 +59,14 @@
   border-width: 2px;
 }
 
+/* for text inside grid block */
+.mines {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  text-align: center;
+}
   
 /* Clear floats after the columns */
 .row:after {
