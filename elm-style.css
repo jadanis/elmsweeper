@@ -9,6 +9,7 @@
 * {
     box-sizing: border-box;
     font-family:Arial,Helvetica,sans-serif;
+    color: #666;
 }
 
 /* To center the game box */
@@ -103,7 +104,6 @@ button {
   display: table-row;
   font-size: 10pt;
   font-weight: 300;
-  color: #666;
   height: 50px;
   width: 100%;
   border: 0;
