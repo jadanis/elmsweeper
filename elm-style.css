@@ -53,11 +53,12 @@
 .grid-item {
   width: 100%;
   height: 100%;
-  background-color: var(--safe-green);
+  background-color: var(--covered);
   border-style: solid;
   border-color: white;
   border-width: 2px;
 }
+
   
 /* Clear floats after the columns */
 .row:after {
@@ -66,12 +67,19 @@
     clear: both;
 }
 
+.panel {
+  display: table;
+  table-layout: fixed;
+  height: 100%;
+}
+
 /* Reserved for game title in panel */
 h2 {
     color: var(--title-color);
     font-size: 40px;
     line-height: 60px;
-    margin: 30px 0 0;
+    display: table-row;
+    /*margin: 30px 0 0;*/
 }
 
 /* for headers and stats in game panel */
@@ -79,11 +87,12 @@ h3 {
   color: var(--covered);
   font-weight: 300;
   line-height: 1;
-  margin: 30px 0 0;
+  display: table-row;
+  /*margin: 30px 0 0;*/
 }
 
 button {
-  display: block;
+  display: table-row;
   font-size: 10pt;
   font-weight: 300;
   color: #666;
