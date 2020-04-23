@@ -64,7 +64,7 @@ renderBox cell =
 
         cont = 
             if cell.rev then
-                [Html.txt (String.fromInt cell.neigh)]
+                [div [Html.Attributes.class "mines"] [Html.txt (String.fromInt cell.neigh)]]
             else
                 []
     in
