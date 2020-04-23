@@ -62,8 +62,7 @@ random seed height width =
         (m,nseed) =
             setStep num_mines seed mineGenerator
 
-        mines = 
-            List.map (\(x,y) -> (x*30,y*30)) m
+        mines = m
 
         cell n = blankCell covered
 
@@ -97,7 +96,7 @@ correct h w grid =
         gridp =
             let
                 f (t,cell) =
-                    {cell | pos = (30 * (t//w), 30 * (modBy w t))}
+                    {cell | pos = ((t//w), (modBy w t))}
             in
                 List.map f gridIdx
     in
