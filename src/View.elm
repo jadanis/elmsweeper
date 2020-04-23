@@ -18,7 +18,7 @@ view model =
         [ div 
             [Html.Attributes.class "menu"]
             [ div [Html.Attributes.class "grid-container"] [renderGrid model.grid]
-            , renderPanel model
+            , div [Html.Attributes.class "column"] [renderPanel model]
             ]
         ]
 
@@ -36,7 +36,7 @@ renderGrid grid =
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
-    [ Html.Attributes.class "column" ]
+    [ Html.Attributes.class "panel" ]
     [ renderTitle "Elm Sweeper"
     , renderLabel "Games"
     , renderLabel <| String.fromInt model.games
@@ -68,7 +68,7 @@ renderBox cell =
             else
                 []
     in
-        div [Html.Attributes.class "grid-item", Html.Attributes.style "background-color" color] cont
+        div [Html.Attributes.class "grid-item", Html.Attributes.style "background-color" (Color.toString color)] cont
 
 
 renderGameButton : String -> (String, Msg) -> Html Msg
