@@ -4,7 +4,7 @@ import Grid exposing (..)
 import Messages exposing (..)
 import Model exposing (..)
 import Color exposing (..)
-import Html exposing (Html, div, text, button)
+import Html exposing (Html, div, text, button,h2,h3)
 import Html.Events.Extra.Mouse as Mouse exposing (onClick, EventOptions, onWithOptions)
 import Html.Attributes exposing (style)
 import Time exposing (posixToMillis)
@@ -54,7 +54,7 @@ renderPanel model =
 
 
 onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
-onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
+onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = True, preventDefault = True}
 
 
 renderBox : Cell Color -> Html Msg
@@ -64,7 +64,7 @@ renderBox cell =
 
         cont = 
             if cell.rev then
-                [div [Html.Attributes.class "mines"] [Html.txt (String.fromInt cell.neigh)]]
+                [div [Html.Attributes.class "mines"] [Html.text (String.fromInt cell.neigh)]]
             else
                 []
     in
