@@ -1,0 +1,123 @@
+/* Pseudo class for CSS color variables */
+:root {
+    --covered: rgb(185,216,194);
+    --title-color: rgb(219,213,110);
+    --exploded: rgb(252,119,83);
+    --safe-green: rgb(102,213,209)
+  }
+  
+  * {
+      box-sizing: border-box;
+      font-family:Arial,Helvetica,sans-serif;
+      color: #666;
+  }
+  
+  /* To center the game box */
+  .centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+  }
+  
+  .menu {
+    height: 600px;
+    width: 900px;
+  }
+  
+    /* Create three equal columns that floats next to each other */
+  /* For game panel column */
+  .column {
+      float: left;
+      width: 33.33%;
+      height: 100%;
+      padding: 10px;
+      /*height: 300px; /* Should be removed. Only for demonstration */
+  }
+  
+  /* For game grid column */
+  .grid-container {
+        float: left;
+        width: 66.66%;
+        height: 100%;
+        /*height: 300px;*/
+  }
+  .grid {
+    width: 100%;
+    height: 100%;
+    background-color: var(--exploded);
+    display: grid;
+    grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10% 10% 10%;
+    grid-template-rows: 10% 10% 10% 10% 10% 10% 10% 10% 10% 10%;
+  }
+  
+  .grid-item {
+    width: 100%;
+    height: 100%;
+    background-color: var(--covered);
+    border-style: solid;
+    border-color: white;
+    border-width: 2px;
+  }
+  
+  /* for text inside grid block */
+  .mines {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+  }
+    
+  /* Clear floats after the columns */
+  .row:after {
+      content: "";
+      display: table;
+      clear: both;
+  }
+  
+  .panel {
+    display: table;
+    table-layout: fixed;
+    height: 100%;
+  }
+  
+  /* Reserved for game title in panel */
+  h2 {
+      color: var(--title-color);
+      font-size: 40px;
+      line-height: 60px;
+      display: table-row;
+      /*margin: 30px 0 0;*/
+  }
+  
+  /* for headers and stats in game panel */
+  h3 {
+    color: var(--covered);
+    font-weight: 300;
+    line-height: 1;
+    display: table-row;
+    /*margin: 30px 0 0;*/
+  }
+  
+  button {
+    display: table-row;
+    font-size: 10pt;
+    font-weight: 300;
+    height: 50px;
+    width: 100%;
+    border: 0;
+    cursor: pointer;
+    margin: 5px 0px;
+  }
+  
+  /* for new game button */
+  .newgame {
+    background: var(--safe-green);
+  }
+  
+  /* for reset button */
+  .reset{
+    background: var(--exploded);
+  }
+  

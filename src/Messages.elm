@@ -91,9 +91,9 @@ newModel model =
 flag : (Float,Float) -> Model -> Model 
 flag (x,y) model =
     let
-        nx = 30 * ((round x - 5 ) // 30)
+        nx =  (round x - 195 ) // 60
                
-        ny = 30 * ((round y - 5 ) // 30)
+        ny =  (round y - 10 ) // 60
                 
         (grid,inc) = flag_cell model.grid (nx, ny)
     in
@@ -129,9 +129,9 @@ flag_cell grid pos =
 reveal : (Float,Float) -> Model -> Model
 reveal (x,y) model =
     let
-        nx = 30 * ((round x - 5 ) // 30)
+        nx = (round x - 195 ) // 60
 
-        ny = 30 * ((round y - 5) // 30)
+        ny = (round y - 10) // 60
 
         grid = reveal_cell model.grid (nx,ny)
             
@@ -169,7 +169,7 @@ reveal_cell grid pos =
                         0
 
         cellsn (a,b) =
-            [(a-30,b-30),(a-30,b),(a-30,b+30),(a,b-30),(a,b+30),(a+30,b-30),(a+30,b),(a+30,b+30)]
+            [(a-1,b-1),(a-1,b),(a-1,b+1),(a,b-1),(a,b+1),(a+1,b-1),(a+1,b),(a+1,b+1)]
         
         neighbors (x,y) =
             List.sum (List.map (getNeigh dict) (cellsn (x,y)))

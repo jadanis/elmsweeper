@@ -4,35 +4,30 @@ import Grid exposing (..)
 import Messages exposing (..)
 import Model exposing (..)
 import Color exposing (..)
-import Html exposing (Html, div, text, button)
+import Html exposing (Html, div, text, button,h2,h3)
 import Html.Events.Extra.Mouse as Mouse exposing (onClick, EventOptions, onWithOptions)
 import Html.Attributes exposing (style)
-import Svg exposing (..)
-import Svg.Attributes as SvgAttrs
 import Time exposing (posixToMillis)
 
 
 view : Model -> Html Msg
 view model = 
     div
-        [ Html.Attributes.style "width" "600px"
-        , Html.Attributes.style "height" "600px"
-        , Html.Attributes.style "position" "absolute"
-        , Html.Attributes.style "left" "0"
-        , Html.Attributes.style "top" "0"
+        [ Html.Attributes.class "centered"
         ]
-        [ renderGrid model.grid 
-        , renderPanel model
+        [ div 
+            [Html.Attributes.class "menu"]
+            [ div [Html.Attributes.class "grid-container"] [renderGrid model.grid]
+            , div [Html.Attributes.class "column"] [renderPanel model]
+            ]
         ]
 
 
 renderGrid : Grid Color -> Html Msg
 renderGrid grid =
     List.map renderBox grid
-        |>  Svg.svg
-            [ Html.Attributes.style "margin" "5px"
-            , SvgAttrs.width "300"
-            , SvgAttrs.height "300"
+        |>  div
+            [ Html.Attributes.class "grid"
             , Mouse.onClick (\event -> Reveal event.clientPos)
             , onRightClick (\event -> Flag event.clientPos)
             ]
@@ -41,16 +36,7 @@ renderGrid grid =
 renderPanel : Model -> Html Msg
 renderPanel model =
     div
-    [ Html.Attributes.style "bottom" "80px"
-    , Html.Attributes.style "color" <| toString covered
-    , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-    , Html.Attributes.style "font-size" "14pt"
-    , Html.Attributes.style "left" "300px"
-    , Html.Attributes.style "padding" "0 30px"
-    , Html.Attributes.style "position" "absolute"
-    , Html.Attributes.style "right" "0"
-    , Html.Attributes.style "top" "0"
-    ]
+    [ Html.Attributes.class "panel" ]
     [ renderTitle "Elm Sweeper"
     , renderLabel "Games"
     , renderLabel <| String.fromInt model.games
@@ -62,67 +48,34 @@ renderPanel model =
     , renderTime model.start model.curr
     , renderLabel "Mines Left"
     , renderLabel <| String.fromInt <| 20 - model.flags
-    , renderGameButton <| actionButton model.status  
-    , renderGameButton ("Reset",Reset)
+    , renderGameButton "newgame" <| actionButton model.status  
+    , renderGameButton "reset" ("Reset",Reset)
     ]
 
 
 onRightClick : (Mouse.Event -> msg) -> Html.Attribute msg 
-onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = False, preventDefault = True}
+onRightClick = Mouse.onWithOptions "auxclick" {stopPropagation = True, preventDefault = True}
 
 
-renderBox : Cell Color -> Svg Msg
+renderBox : Cell Color -> Html Msg
 renderBox cell =
     let
         color = cell.val
 
-        x = Tuple.first cell.pos
-
-        y = Tuple.second cell.pos
-
-        box = Svg.rect
-            [ SvgAttrs.width "30"
-            , SvgAttrs.height "30"
-            , SvgAttrs.fill (toString color)
-            , SvgAttrs.stroke (toString white)
-            , SvgAttrs.strokeWidth "2"
-            , SvgAttrs.x (String.fromInt x)
-            , SvgAttrs.y (String.fromInt y)
-            ]
-            []
-        text = Svg.text_
-                [ SvgAttrs.fill (toString flagged)
-                , SvgAttrs.x (String.fromInt <| x + 15)
-                , SvgAttrs.y (String.fromInt <| y + 15)
-                , Html.Attributes.style "font-family" "Arial, Helvetica, sans-serif"
-                , Html.Attributes.style "font-size" "8pt"
-                ]
-                [ Svg.text (String.fromInt cell.neigh)] 
-    in
-        --box
-        Svg.g
-            []
-            <|
+        cont = 
             if cell.rev then
-                [box , text]
+                [div [Html.Attributes.class "mines"] [Html.text (String.fromInt cell.neigh)]]
             else
-                [ box ]
-                
+                []
+    in
+        div [Html.Attributes.class "grid-item", Html.Attributes.style "background-color" (Color.toString color)] cont
 
-renderGameButton : (String, Msg) -> Html Msg
-renderGameButton (txt, msg) =
+
+renderGameButton : String -> (String, Msg) -> Html Msg
+renderGameButton cl (txt, msg) =
     button
         [ Mouse.onClick (\event -> msg)
-        , Html.Attributes.style "background" <| toString covered
-        , Html.Attributes.style "color" <| toString black
-        , Html.Attributes.style "display" "block"
-        , Html.Attributes.style "font-family" "Arial,Helvetica,sans-serif"
-        , Html.Attributes.style "font-size" "10pt"
-        , Html.Attributes.style "height" "50px"
-        , Html.Attributes.style "width" "100px"
-        , Html.Attributes.style "border" "0"
-        , Html.Attributes.style "cursor" "pointer"
-        , Html.Attributes.style "margin" "5px 0px"
+        , Html.Attributes.class cl
         ]
         [ Html.text txt ]
 
@@ -148,13 +101,7 @@ actionButton state =
 
 renderLabel : String -> Html Msg
 renderLabel str =
-    div
-        [ Html.Attributes.style "color" <| toString <| covered
-        , Html.Attributes.style "font-weight" "300"
-        , Html.Attributes.style "line-height" "1"
-        , Html.Attributes.style "margin" "30px 0 0"
-        ]
-        [ Html.text str ]
+    h3 [] [ Html.text str ]
 
 
 renderGrade : Model -> Html Msg
@@ -168,19 +115,10 @@ renderGrade model =
             "You lost! Kerplow!"
         _ ->
             grade model
-    
-
-
 
 renderTitle : String -> Html Msg
 renderTitle str =
-    div
-        [ Html.Attributes.style "color" <| toString <| flagged
-        , Html.Attributes.style "font-size" "40px"
-        , Html.Attributes.style "line-height" "60px"
-        , Html.Attributes.style "margin" "30px 0 0"
-        ]
-        [ Html.text str ]
+    h2 [] [ Html.text str ]
 
 
 renderTime : Time.Posix -> Time.Posix -> Html Msg
