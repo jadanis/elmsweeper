@@ -96,7 +96,7 @@ correct h w grid =
         gridp =
             let
                 f (t,cell) =
-                    {cell | pos = ((t//w), (modBy w t))}
+                    {cell | pos = ( modBy w t,  t // w)}
             in
                 List.map f gridIdx
     in
@@ -185,7 +185,6 @@ decodeTime t = Time.millisToPosix t
 {-decodeSeed : List Int -> Random.Seed
 decodeSeed (x :: y :: xs) =
     Random.Seed x y
-
 encodeSeed : Random.Seed -> Encode.Value
 encodeSeed (Random.Seed n0 n1) =
     Encode.list Encode.int [n0,n1]-}
