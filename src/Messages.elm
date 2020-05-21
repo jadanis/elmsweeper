@@ -226,7 +226,7 @@ reveal_cell grid pos =
                     )
                     tup_list
 
-                r_cell_list = List.map (\c -> {c | rev = True, neigh = neighbors c.pos, val = uncovered <| neighbors c.pos }) cell_list
+                r_cell_list = List.map (\c -> {c | rev = not c.flag, neigh = neighbors c.pos, val = if c.flag then flagged else uncovered <| neighbors c.pos }) cell_list
                         
                 n_dict = Dict.fromList <| List.map (\c -> (c.pos,c)) r_cell_list
 
